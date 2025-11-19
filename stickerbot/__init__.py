@@ -29,8 +29,10 @@ config.read(config_file)
 # Get from config file.
 ADMIN = config.get('pyrogram', 'admin')
 
-SUPABASE_URL = config.get('supabase', 'url')
-SUPABASE_KEY = config.get('supabase', 'key')
+MONGO_URL = config.get('mongodb', 'url')
+MONGO_DB_NAME = config.get('mongodb', 'database', fallback='stickerbot')
+MONGO_USERNAME = config.get('mongodb', 'username')
+MONGO_PASSWORD = config.get('mongodb', 'password')
 
 # Global Variables
 client = None

@@ -14,11 +14,9 @@ from stickerbot.helpers.sticker_state_enum import StickerStates
 
 class StickerBot(Client):
     def __init__(self):
-        self.STICKER_STATE = StickerStates.NOTHING
-        self.STICKER_ID = None
-        self.ERROR_MESSAGE_ID = None
-        self.TAG_STRING = None
-        self.EMOJI_STRING = None
+        # State management will be user-specific now, so we don't need global state
+        # Instead we'll use a dictionary to store per-user states
+        self.USER_STATES = {}
 
         config_file = 'config.ini'
 
@@ -54,33 +52,64 @@ class StickerBot(Client):
         await super().stop()
         print(f"{self.__class__.__name__} stopped. Bye.")
 
-    def set_sticker_state(self, state: StickerStates):
-        self.STICKER_STATE = state
+    def _get_user_state(self, user_id: int):
+        """Get or create state for a specific user"""
+        if user_id not in self.USER_STATES:
+            self.USER_STATES[user_id] = {
+                'state': StickerStates.NOTHING,
+                'sticker_id': None,           # Actual file ID for sending the sticker
+                'sticker_unique_id': None,    # Unique ID for duplicate detection
+                'error_message_id': None,
+                'tag_string': None,
+                'emoji_string': None
+            }
+        return self.USER_STATES[user_id]
 
-    def get_sticker_state(self) -> StickerStates:
-        return self.STICKER_STATE
+    def set_sticker_state(self, user_id: int, state: StickerStates):
+        user_state = self._get_user_state(user_id)
+        user_state['state'] = state
 
-    def set_sticker_id(self, sticker_id: str | None):
-        self.STICKER_ID = sticker_id
+    def get_sticker_state(self, user_id: int) -> StickerStates:
+        user_state = self._get_user_state(user_id)
+        return user_state['state']
 
-    def get_sticker_id(self) -> str:
-        return self.STICKER_ID
+    def set_sticker_id(self, user_id: int, sticker_id: str | None):
+        user_state = self._get_user_state(user_id)
+        user_state['sticker_id'] = sticker_id
 
-    def set_error_message_id(self, message_id: int | None):
-        self.ERROR_MESSAGE_ID = message_id
+    def get_sticker_id(self, user_id: int) -> str:
+        user_state = self._get_user_state(user_id)
+        return user_state['sticker_id']
 
-    def get_error_message_id(self) -> int:
-        return self.ERROR_MESSAGE_ID
+    def set_sticker_unique_id(self, user_id: int, sticker_unique_id: str | None):
+        user_state = self._get_user_state(user_id)
+        user_state['sticker_unique_id'] = sticker_unique_id
 
-    def set_tag(self, tag_string: str | None):
-        self.TAG_STRING = tag_string
+    def get_sticker_unique_id(self, user_id: int) -> str:
+        user_state = self._get_user_state(user_id)
+        return user_state['sticker_unique_id']
 
-    def get_tag(self) -> str:
-        return self.TAG_STRING
+    def set_error_message_id(self, user_id: int, message_id: int | None):
+        user_state = self._get_user_state(user_id)
+        user_state['error_message_id'] = message_id
 
-    def set_emoji(self, emoji_string: str | None):
-        self.EMOJI_STRING = emoji_string
+    def get_error_message_id(self, user_id: int) -> int:
+        user_state = self._get_user_state(user_id)
+        return user_state['error_message_id']
 
-    def get_emoji(self) -> str:
-        return self.EMOJI_STRING
+    def set_tag(self, user_id: int, tag_string: str | list | None):
+        user_state = self._get_user_state(user_id)
+        user_state['tag_string'] = tag_string
+
+    def get_tag(self, user_id: int) -> str | list:
+        user_state = self._get_user_state(user_id)
+        return user_state['tag_string']
+
+    def set_emoji(self, user_id: int, emoji_string: str | None):
+        user_state = self._get_user_state(user_id)
+        user_state['emoji_string'] = emoji_string
+
+    def get_emoji(self, user_id: int) -> str:
+        user_state = self._get_user_state(user_id)
+        return user_state['emoji_string']
 
