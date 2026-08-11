@@ -1,0 +1,30 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: stickerbot_mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: your_secure_password
+      MONGODB_SYSTEM_LOG_VERBOSITY: 0
+    restart: always
+    networks:
+      - bot-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stickerbot
+    depends_on:
+      - mongodb
+    volumes:
+      - ./config.ini:/app/config.ini
+      - ./workdir:/app/workdir
+      - ./logs:/app/logs
+    restart: always
+    networks:
+      - bot-network
+
+networks:
+  bot-network:
+    driver: bridge

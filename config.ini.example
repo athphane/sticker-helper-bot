@@ -1,0 +1,12 @@
+[telegram]
+api_id = your_api_id
+api_hash = your_api_hash
+bot_token = your_bot_token
+admins = 123456789
+
+[mongo]
+url = mongodb:27017
+username = admin
+password = your_secure_password
+db_name = stickerbot
+auth_source = admin

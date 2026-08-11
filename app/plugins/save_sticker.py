@@ -1,12 +1,12 @@
 from pyrogram import filters
 from pyrogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
-from stickerbot import StickerBot
-from stickerbot.database.user_db import UserDB
-from stickerbot.helpers.sticker_manager import StickerManager
-from stickerbot.helpers.sticker_state_enum import StickerStates
-from stickerbot.helpers.string_parsers import is_text, is_emoji
-from stickerbot.helpers.keyboard_utils import get_tag_keyboard, get_emoji_keyboard, get_common_emojis_keyboard, get_confirmation_keyboard, get_main_keyboard, get_edit_existing_sticker_keyboard
+from app import StickerBot
+from app.database.user_db import UserDB
+from app.helpers.sticker_manager import StickerManager
+from app.helpers.sticker_state_enum import StickerStates
+from app.helpers.string_parsers import is_text, is_emoji
+from app.helpers.keyboard_utils import get_tag_keyboard, get_emoji_keyboard, get_common_emojis_keyboard, get_confirmation_keyboard, get_main_keyboard, get_edit_existing_sticker_keyboard
 
 
 @StickerBot.on_message(filters.command(["clear"]))
@@ -116,7 +116,7 @@ async def set_tag(bot: StickerBot, message: Message):
         return
 
     if bot.get_sticker_state(user_id) is StickerStates.WAITING_FOR_TAG:
-        from stickerbot.helpers.string_parsers import parse_tags, validate_tag
+        from app.helpers.string_parsers import parse_tags, validate_tag
 
         # Parse tags from user input (could be multiple tags)
         tags = parse_tags(message.text)
@@ -149,7 +149,7 @@ async def set_tag(bot: StickerBot, message: Message):
             # Send the sticker with confirmation options
             await message.reply_sticker(sticker_id)
             # Parse tags to show them properly
-            from stickerbot.helpers.string_parsers import parse_tags
+            from app.helpers.string_parsers import parse_tags
             tags_list = parse_tags(tag) if tag else []
             tags_display = ', '.join(tags_list) if tags_list else 'No tag'
             await message.reply_text(
@@ -177,7 +177,7 @@ async def set_tag(bot: StickerBot, message: Message):
             # Send the sticker with confirmation options
             await message.reply_sticker(sticker_id)
             # Parse tags to show them properly
-            from stickerbot.helpers.string_parsers import parse_tags
+            from app.helpers.string_parsers import parse_tags
             tags_list = parse_tags(tag) if tag else []
             tags_display = ', '.join(tags_list) if tags_list else 'No tag'
             await message.reply_text(
@@ -433,7 +433,7 @@ async def handle_sticker_saving_with_user_id(bot: StickerBot, message: Message, 
         return
 
     # Parse multiple tags from the tag string
-    from stickerbot.helpers.string_parsers import parse_tags
+    from app.helpers.string_parsers import parse_tags
     tags_list = parse_tags(tag_string) if tag_string else []
 
     # Check if this is an existing sticker being updated (use unique_id for this check)

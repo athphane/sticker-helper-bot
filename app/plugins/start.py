@@ -1,10 +1,10 @@
 from pyrogram import filters
 from pyrogram.types import Message
 
-from stickerbot import StickerBot
-from stickerbot.database.user_db import UserDB
-from stickerbot.helpers.sticker_manager import StickerManager
-from stickerbot.helpers.keyboard_utils import get_main_keyboard
+from app import StickerBot
+from app.database.user_db import UserDB
+from app.helpers.sticker_manager import StickerManager
+from app.helpers.keyboard_utils import get_main_keyboard
 
 
 @StickerBot.on_message(filters.command(["start"]))

@@ -1,4 +1,4 @@
-from stickerbot.database.sticker_db import StickerDB
+from app.database.sticker_db import StickerDB
 
 
 class StickerManager:

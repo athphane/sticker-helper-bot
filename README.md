@@ -53,18 +53,21 @@ A comprehensive Telegram bot that helps users save and organize stickers with cu
 
 ## Configuration
 
-Create a `config.ini` file in the project root with the following structure:
+Create a `config.ini` file in the project root (see `config.ini.example` for a template):
 
 ```ini
-[pyrogram]
+[telegram]
 api_id = YOUR_API_ID
 api_hash = YOUR_API_HASH
 bot_token = YOUR_BOT_TOKEN
-admin = ADMIN_USER_ID
+admins = 123456789
 
-[mongodb]
-uri = YOUR_MONGODB_URI
-database_name = stickerbot
+[mongo]
+url = YOUR_MONGODB_URL
+username = YOUR_MONGODB_USERNAME
+password = YOUR_MONGODB_PASSWORD
+db_name = stickerbot
+auth_source = admin
 ```
 
 ### Getting Required Values
@@ -72,13 +75,13 @@ database_name = stickerbot
 - **API ID & Hash**: Create an app at [my.telegram.org](https://my.telegram.org) to get your API credentials
 - **Bot Token**: Create a bot with [@BotFather](https://t.me/BotFather) on Telegram
 - **Admin User ID**: Your Telegram user ID (you can find it using [@userinfobot](https://t.me/userinfobot))
-- **MongoDB URI**: Create a MongoDB Atlas account or use a local instance
+- **MongoDB URL**: Create a MongoDB Atlas account or use a local instance
 
 ## Usage
 
 1. Start the bot:
    ```bash
-   python -m stickerbot
+   python -m app
    ```
 
 2. **Adding Stickers**:
@@ -101,6 +104,19 @@ database_name = stickerbot
 - `/start` - Get started and see your sticker count
 - `/clear` - Reset the current sticker saving process
 
+## Docker
+
+The project ships with a `Dockerfile` and `docker-compose.yml` for containerized deployment with MongoDB.
+
+1. Create `config.ini` from `config.ini.example` and set your real values.
+2. Set the MongoDB root password in `docker-compose.yml` to match `[mongo]` in `config.ini`.
+3. Run:
+   ```bash
+   docker compose up -d --build
+   ```
+
+The compose file mounts `config.ini`, `workdir/` (session files), and `logs/` from the host, so they persist across container restarts.
+
 ## How It Works
 
 The bot uses Telegram's unique file identifiers (file_unique_id) to detect duplicate stickers, ensuring that even if the same sticker is sent from different sources, it's recognized as the same sticker. Each sticker can have multiple tags for better organization and searchability.
@@ -111,10 +127,10 @@ All data is stored in MongoDB, with proper user isolation to ensure privacy betw
 
 ### File Structure
 ```
-stickerbot/
+app/
 ├── __init__.py         # Initializes logging, config and globals
 ├── __main__.py         # Main entry point
-├── stickerbot.py       # Main bot class with state management
+├── bot.py              # Main bot class with state management
 ├── database/           # Database layer
 │   ├── __init__.py     # Database connection function
 │   ├── sticker_db.py   # Sticker database operations

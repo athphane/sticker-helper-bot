@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pyrogram.types import User as BaseUser
 
-from stickerbot.database import database
+from app.database import database
 
 
 class UserDB:

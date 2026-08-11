@@ -3,9 +3,9 @@ from uuid import uuid4
 from pyrogram.types import InlineQuery, InlineQueryResultArticle, InlineQueryResultCachedSticker, \
     InputTextMessageContent
 
-from stickerbot import StickerBot
-from stickerbot.database.user_db import UserDB
-from stickerbot.helpers.sticker_manager import StickerManager
+from app import StickerBot
+from app.database.user_db import UserDB
+from app.helpers.sticker_manager import StickerManager
 
 
 @StickerBot.on_inline_query()

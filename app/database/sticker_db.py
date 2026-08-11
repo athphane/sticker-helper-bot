@@ -1,4 +1,4 @@
-from stickerbot.database import database
+from app.database import database
 
 
 class StickerDB:

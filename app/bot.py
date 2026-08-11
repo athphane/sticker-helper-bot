@@ -1,36 +1,27 @@
-import ast
-import os
-import sys
-from configparser import ConfigParser
-from functools import wraps
-from typing import BinaryIO, List, Optional, Union
+import logging
 
-from pyrogram import Client, types
+from pyrogram import Client
 from pyrogram.raw.all import layer
-from pyrogram.types import CallbackQuery, Message
+from pyrogram.types import BotCommand, BotCommandScopeDefault
 
-from stickerbot.helpers.sticker_state_enum import StickerStates
+from app.helpers.sticker_state_enum import StickerStates
+
+LOGS = logging.getLogger(__name__)
 
 
 class StickerBot(Client):
-    def __init__(self):
-        # State management will be user-specific now, so we don't need global state
-        # Instead we'll use a dictionary to store per-user states
+    def __init__(self, version='0.0.0', **kwargs):
+        self.version = version
         self.USER_STATES = {}
-
-        config_file = 'config.ini'
-
-        self.config = config = ConfigParser()
-        config.read(config_file)
 
         super().__init__(
             'stickerbot',
-            api_id=config.getint('pyrogram', 'api_id'),
-            api_hash=config.get('pyrogram', 'api_hash'),
-            bot_token=config.get('pyrogram', 'bot_token'),
-            workers=32,
-            plugins=dict(root="stickerbot/plugins"),
-            workdir="./"
+            api_id=kwargs['api_id'],
+            api_hash=kwargs['api_hash'],
+            bot_token=kwargs['bot_token'],
+            workers=16,
+            plugins=dict(root="app/plugins"),
+            workdir="./workdir"
         )
 
     def __str__(self):
@@ -41,16 +32,22 @@ class StickerBot(Client):
 
     async def start(self):
         await super().start()
+
+        await self.set_bot_commands(
+            [
+                BotCommand('start', 'Start the bot'),
+                BotCommand('clear', 'Reset the current process'),
+            ],
+            scope=BotCommandScopeDefault()
+        )
+
         me = await self.get_me()
-        print(f"{self.__class__.__name__} started on @{me.username}")
+        LOGS.info(f"{self.__class__.__name__} v{self.version} (Layer {layer}) started on @{me.username}.\n"
+                  f"Your Bot is ready to serve.")
 
     async def stop(self, *args):
-        """
-        Stop function
-        :param args:
-        """
         await super().stop()
-        print(f"{self.__class__.__name__} stopped. Bye.")
+        LOGS.info(f"{self.__class__.__name__} stopped. Bye.")
 
     def _get_user_state(self, user_id: int):
         """Get or create state for a specific user"""
@@ -112,4 +109,3 @@ class StickerBot(Client):
     def get_emoji(self, user_id: int) -> str:
         user_state = self._get_user_state(user_id)
         return user_state['emoji_string']
-
