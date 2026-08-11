@@ -8,6 +8,8 @@ from app.helpers.sticker_state_enum import StickerStates
 from app.helpers.string_parsers import is_text, is_emoji
 from app.helpers.keyboard_utils import get_tag_keyboard, get_emoji_keyboard, get_common_emojis_keyboard, get_confirmation_keyboard, get_main_keyboard, get_edit_existing_sticker_keyboard
 
+user_db = UserDB()
+
 
 @StickerBot.on_message(filters.command(["clear"]))
 async def reset_state(bot: StickerBot, message: Message):
@@ -26,7 +28,6 @@ async def incoming_sticker(bot: StickerBot, message: Message):
     user_id = message.from_user.id
 
     # Create or update user in database
-    user_db = UserDB()
     user_db.find_or_create(message.from_user)
 
     if bot.get_sticker_state(user_id) is not StickerStates.NOTHING:

@@ -7,6 +7,8 @@ from app import StickerBot
 from app.database.user_db import UserDB
 from app.helpers.sticker_manager import StickerManager
 
+user_db = UserDB()
+
 
 @StickerBot.on_inline_query()
 async def stickers_inline(bot: StickerBot, inline_query: InlineQuery):
@@ -16,7 +18,6 @@ async def stickers_inline(bot: StickerBot, inline_query: InlineQuery):
     results = []
 
     # Create or update user in database
-    user_db = UserDB()
     user_db.find_or_create(inline_query.from_user)
 
     # Get stickers for the specific user, remove admin restriction

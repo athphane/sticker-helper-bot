@@ -4,6 +4,7 @@ from pyrogram import Client
 from pyrogram.raw.all import layer
 from pyrogram.types import BotCommand, BotCommandScopeDefault
 
+from app.database import close_connection
 from app.helpers.sticker_state_enum import StickerStates
 
 LOGS = logging.getLogger(__name__)
@@ -47,6 +48,7 @@ class StickerBot(Client):
 
     async def stop(self, *args):
         await super().stop()
+        close_connection()
         LOGS.info(f"{self.__class__.__name__} stopped. Bye.")
 
     def _get_user_state(self, user_id: int):

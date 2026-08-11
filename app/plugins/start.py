@@ -6,11 +6,12 @@ from app.database.user_db import UserDB
 from app.helpers.sticker_manager import StickerManager
 from app.helpers.keyboard_utils import get_main_keyboard
 
+user_db = UserDB()
+
 
 @StickerBot.on_message(filters.command(["start"]))
 async def start(client: StickerBot, message: Message):
     # Create or update user in database
-    user_db = UserDB()
     user_db.find_or_create(message.from_user)
 
     # Get user's sticker count
