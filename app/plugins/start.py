@@ -30,3 +30,24 @@ async def start(client: StickerBot, message: Message):
     await message.reply_text(welcome_message, reply_markup=get_main_keyboard())
 
 
+HELP_TEXT = (
+    "Here's how to use me:\n\n"
+    "1. Send me any sticker and I'll save it to your personal collection.\n"
+    "2. Add tags (words separated by commas) and an emoji so you can find it later.\n"
+    "3. In any chat, type @stickerdexbot and your search terms to find and send your stickers.\n\n"
+    "Commands:\n"
+    "/start - Show this info\n"
+    "/help - Show this help\n"
+    "/clear - Reset the current save/edit process\n\n"
+    "Tips:\n"
+    "- Send a sticker you've already saved to edit its tags/emoji or delete it.\n"
+    "- After saving, you can add more tags to the sticker.\n"
+    "- Type @stickerdexbot with no query to browse your whole collection."
+)
+
+
+@StickerBot.on_message(filters.command(["help"]))
+async def help_command(client: StickerBot, message: Message):
+    await message.reply_text(HELP_TEXT, reply_markup=get_main_keyboard())
+
+

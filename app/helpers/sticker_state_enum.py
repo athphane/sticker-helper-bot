@@ -6,4 +6,5 @@ class StickerStates:
     SELECTING_EMOJI = 4  # New state for emoji keyboard selection
     CONFIRMING_STICKER = 5  # New state for confirming before saving
     EDITING_EXISTING_STICKER = 6  # New state for editing existing stickers
+    ADDING_TAGS = 7  # State for adding more tags to a just-saved sticker
 

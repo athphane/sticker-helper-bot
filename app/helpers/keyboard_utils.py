@@ -52,9 +52,25 @@ def get_confirmation_keyboard():
 def get_main_keyboard():
     """Return the main keyboard"""
     return ReplyKeyboardMarkup([
-        [KeyboardButton("/start"), KeyboardButton("/help")],
-        [KeyboardButton("/clear")]
+        [KeyboardButton("Random Sticker"), KeyboardButton("My Collection")],
+        [KeyboardButton("/start"), KeyboardButton("/help"), KeyboardButton("/clear")]
     ], resize_keyboard=True)
+
+def get_browse_keyboard():
+    """Return an inline keyboard for browsing a user's sticker collection"""
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("◀ Prev", callback_data="browse_prev"),
+            InlineKeyboardButton("Next ▶", callback_data="browse_next")
+        ],
+        [
+            InlineKeyboardButton("Delete", callback_data="browse_delete"),
+            InlineKeyboardButton("Edit", callback_data="browse_edit")
+        ],
+        [
+            InlineKeyboardButton("Close", callback_data="browse_close")
+        ]
+    ])
 
 def get_edit_existing_sticker_keyboard():
     """Return an inline keyboard for editing existing stickers"""
@@ -66,8 +82,27 @@ def get_edit_existing_sticker_keyboard():
         [
             InlineKeyboardButton("Edit Both", callback_data="edit_both_existing"),
             InlineKeyboardButton("Cancel", callback_data="cancel_edit_existing")
+        ],
+        [
+            InlineKeyboardButton("Delete Sticker", callback_data="delete_existing")
         ]
     ])
+
+def get_delete_confirmation_keyboard():
+    """Return an inline keyboard to confirm deleting a sticker"""
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("Confirm Delete", callback_data="confirm_delete"),
+            InlineKeyboardButton("Cancel", callback_data="cancel_delete")
+        ]
+    ])
+
+def get_recent_emojis_keyboard(emojis):
+    """Return an inline keyboard built from the user's recently used emojis"""
+    rows = [emojis[i:i + 3] for i in range(0, len(emojis), 3)]
+    keyboard = [[InlineKeyboardButton(e, callback_data=f"emoji_{e}") for e in row] for row in rows]
+    keyboard.append([InlineKeyboardButton("Cancel", callback_data="cancel_emoji")])
+    return InlineKeyboardMarkup(keyboard)
 
 def get_multiple_tag_keyboard():
     """Return a reply keyboard for multiple tag entry"""

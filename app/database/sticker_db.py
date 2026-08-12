@@ -1,4 +1,9 @@
+import logging
+from datetime import datetime
+
 from app.database import database
+
+LOGS = logging.getLogger(__name__)
 
 
 class StickerDB:
@@ -25,7 +30,7 @@ class StickerDB:
         results = list(self.stickers.find(query))
         return results
 
-    def find_stickers_like(self, search: str, user_id: int, limit: int = 10):
+    def find_stickers_like(self, search: str, user_id: int, limit: int = 50, offset: int = 0):
         if search:
             # Search for stickers where any tag in the tags array contains the search term (case-insensitive) or emoji matches exactly
             # Only return stickers for the specific user
@@ -45,11 +50,11 @@ class StickerDB:
                 ]
             }
 
-            results = list(self.stickers.find(query).limit(limit))
+            results = list(self.stickers.find(query).skip(offset).limit(limit))
         else:
             # Return stickers for the specific user if no search term
             query = {"user_id": user_id}
-            results = list(self.stickers.find(query).limit(limit))
+            results = list(self.stickers.find(query).skip(offset).limit(limit))
 
         return results
 
@@ -68,12 +73,13 @@ class StickerDB:
             "sticker_unique_id": sticker_unique_id,  # The unique ID for duplicate detection
             "tags": tags,  # Now storing as a list
             "emoji": emoji,
+            "created_at": datetime.now(),
         }
         result = self.stickers.insert_one(sticker_doc)
         return result
 
-    def delete_sticker(self, sticker_id: str, user_id: int):
-        result = self.stickers.delete_one({"sticker_id": sticker_id, "user_id": user_id})
+    def delete_sticker(self, user_id: int, sticker_unique_id: str):
+        result = self.stickers.delete_one({"sticker_unique_id": sticker_unique_id, "user_id": user_id})
         return result.deleted_count
 
     def get_user_sticker_count(self, user_id: int):
@@ -86,9 +92,9 @@ class StickerDB:
             "user_id": user_id,
             "sticker_unique_id": sticker_unique_id
         }
-        print(f"Database query for existing sticker - Query: {query}")
+        LOGS.debug(f"Database query for existing sticker - Query: {query}")
         existing_sticker = self.stickers.find_one(query)
-        print(f"Database query result: {existing_sticker}")
+        LOGS.debug(f"Database query result: {existing_sticker}")
         return existing_sticker
 
     def add_tags_to_sticker(self, user_id: int, sticker_unique_id: str, new_tags: list):
@@ -136,3 +142,29 @@ class StickerDB:
         }
         result = self.stickers.update_one(query, update_data)
         return result
+
+    def get_recent_emojis(self, user_id: int, limit: int = 9):
+        """Return the most recently used emojis for a user, most recent first."""
+        docs = self.stickers.find(
+            {"user_id": user_id, "emoji": {"$nin": ["", None]}},
+            {"emoji": 1, "created_at": 1, "_id": 0},
+        ).sort("created_at", -1)
+
+        seen, recent = set(), []
+        for doc in docs:
+            emoji_value = doc.get("emoji")
+            if emoji_value and emoji_value not in seen:
+                seen.add(emoji_value)
+                recent.append(emoji_value)
+            if len(recent) >= limit:
+                break
+        return recent
+
+    def get_random_sticker(self, user_id: int):
+        """Return a random sticker document for a user, or None if the collection is empty."""
+        pipeline = [
+            {"$match": {"user_id": user_id}},
+            {"$sample": {"size": 1}},
+        ]
+        docs = list(self.stickers.aggregate(pipeline))
+        return docs[0] if docs else None
