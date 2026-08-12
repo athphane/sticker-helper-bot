@@ -73,6 +73,7 @@ class StickerDB:
             "sticker_unique_id": sticker_unique_id,  # The unique ID for duplicate detection
             "tags": tags,  # Now storing as a list
             "emoji": emoji,
+            "use_count": 0,  # Times this sticker was sent via inline mode
             "created_at": datetime.now(),
         }
         result = self.stickers.insert_one(sticker_doc)
@@ -168,3 +169,60 @@ class StickerDB:
         ]
         docs = list(self.stickers.aggregate(pipeline))
         return docs[0] if docs else None
+
+    def increment_sticker_use(self, user_id: int, sticker_unique_id: str):
+        """Increment the use count of a sticker when it is sent via inline mode."""
+        query = {
+            "user_id": user_id,
+            "sticker_unique_id": sticker_unique_id
+        }
+        result = self.stickers.update_one(query, {"$inc": {"use_count": 1}})
+        return result
+
+    def get_most_used_stickers(self, user_id: int, limit: int = 5):
+        """Return the most-sent stickers for a user, most used first."""
+        pipeline = [
+            {"$match": {"user_id": user_id}},
+            {"$addFields": {"use_count": {"$ifNull": ["$use_count", 0]}}},
+            {"$sort": {"use_count": -1, "created_at": 1}},
+            {"$limit": limit},
+        ]
+        return list(self.stickers.aggregate(pipeline))
+
+    def get_stats(self, user_id: int, limit: int = 5):
+        """Aggregate usage metrics for a user: sticker/tag/emoji popularity."""
+        total = self.stickers.count_documents({"user_id": user_id})
+
+        tagged_total = self.stickers.count_documents(
+            {"user_id": user_id, "tags": {"$exists": True, "$ne": []}}
+        )
+
+        total_uses = self.stickers.aggregate([
+            {"$match": {"user_id": user_id}},
+            {"$group": {"_id": None, "total": {"$sum": {"$ifNull": ["$use_count", 0]}}}},
+        ])
+        total_uses = next(total_uses, {}).get("total", 0)
+
+        most_used_tags = list(self.stickers.aggregate([
+            {"$match": {"user_id": user_id, "tags": {"$exists": True, "$ne": []}}},
+            {"$unwind": "$tags"},
+            {"$group": {"_id": "$tags", "uses": {"$sum": {"$ifNull": ["$use_count", 0]}}}},
+            {"$sort": {"uses": -1, "_id": 1}},
+            {"$limit": limit},
+        ]))
+
+        most_used_emojis = list(self.stickers.aggregate([
+            {"$match": {"user_id": user_id, "emoji": {"$nin": ["", None]}}},
+            {"$group": {"_id": "$emoji", "uses": {"$sum": {"$ifNull": ["$use_count", 0]}}}},
+            {"$sort": {"uses": -1, "_id": 1}},
+            {"$limit": limit},
+        ]))
+
+        return {
+            "total_stickers": total,
+            "total_uses": total_uses,
+            "tagged_stickers": tagged_total,
+            "most_used_stickers": self.get_most_used_stickers(user_id, limit),
+            "most_used_tags": most_used_tags,
+            "most_used_emojis": most_used_emojis,
+        }

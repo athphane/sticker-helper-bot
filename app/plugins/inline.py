@@ -1,11 +1,13 @@
-from uuid import uuid4
+import logging
 
-from pyrogram.types import InlineQuery, InlineQueryResultArticle, InlineQueryResultCachedSticker, \
+from pyrogram.types import ChosenInlineResult, InlineQuery, InlineQueryResultArticle, InlineQueryResultCachedSticker, \
     InputTextMessageContent
 
 from app import StickerBot
 from app.database.user_db import UserDB
 from app.helpers.sticker_manager import StickerManager
+
+LOGS = logging.getLogger(__name__)
 
 user_db = UserDB()
 
@@ -40,9 +42,24 @@ async def stickers_inline(bot: StickerBot, inline_query: InlineQuery):
         for sticker in stickers:
             results.append(InlineQueryResultCachedSticker(
                 sticker_file_id=sticker['sticker_id'],
-                id=str(uuid4()),
+                id=sticker['sticker_unique_id'],
             ))
         if len(stickers) == PAGE_SIZE:
             next_offset = str(offset + PAGE_SIZE)
 
     await inline_query.answer(results, cache_time=1, is_personal=True, is_gallery=True, next_offset=next_offset)
+
+
+@StickerBot.on_chosen_inline_result()
+async def track_inline_use(bot: StickerBot, chosen_inline_result: ChosenInlineResult):
+    user_id = chosen_inline_result.from_user.id
+    sticker_unique_id = chosen_inline_result.result_id
+    if not sticker_unique_id:
+        return
+
+    try:
+        result = StickerManager.increment_sticker_use(user_id, sticker_unique_id)
+        if result.modified_count == 0:
+            LOGS.debug(f"No sticker matched for use tracking - User: {user_id}, Unique ID: {sticker_unique_id}")
+    except ValueError as e:
+        LOGS.error(f"Error incrementing sticker use: {e}")

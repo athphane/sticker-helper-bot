@@ -83,3 +83,13 @@ class StickerManager:
     def get_random_sticker(user_id: int):
         """Return a random sticker for a user, or None if the collection is empty"""
         return _db.get_random_sticker(user_id)
+
+    @staticmethod
+    def increment_sticker_use(user_id: int, sticker_unique_id: str):
+        """Increment the use count of a sticker when it is sent via inline mode"""
+        return _db.increment_sticker_use(user_id, sticker_unique_id)
+
+    @staticmethod
+    def get_stats(user_id: int, limit: int = 5):
+        """Aggregate usage metrics for a user: sticker/tag/emoji popularity"""
+        return _db.get_stats(user_id, limit)

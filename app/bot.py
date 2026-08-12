@@ -55,6 +55,7 @@ class StickerBot(Client):
                 BotCommand('random', 'Send a random sticker from your collection'),
                 BotCommand('collection', 'Browse your saved stickers'),
                 BotCommand('import', 'Import a sticker pack by link'),
+                BotCommand('stats', 'See your sticker statistics'),
             ],
             scope=BotCommandScopeDefault()
         )
